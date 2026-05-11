@@ -1,11 +1,15 @@
 import streamlit as st
 from utils.ai_engine import ai_response
 
-st.title("💬 AI Data Analyst Chat")
+st.title("💬 AI Chat Analyst")
 
-user_input = st.text_input("Ask about your data")
+df = st.session_state.get("df")
 
-df = st.session_state.get("df", None)
+if df is None:
+    st.warning("⚠ Please upload dataset in Dashboard first")
+    st.stop()
+
+user_input = st.text_input("Ask your question")
 
 if user_input:
     response = ai_response(user_input, df)

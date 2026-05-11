@@ -1,36 +1,43 @@
 import streamlit as st
 import pandas as pd
 
-st.title("📑 Reports & Data Upload")
+st.title("📑 Reports")
 
-# ---------------- UPLOAD SECTION ----------------
-uploaded_file = st.file_uploader("Upload Dataset (CSV)", type=["csv"])
+# -----------------------------
+# STEP 1: Get dataset
+# -----------------------------
+df = st.session_state.get("df")
 
-if uploaded_file is not None:
-    df = pd.read_csv(uploaded_file)
+# -----------------------------
+# STEP 2: If no dataset, show upload option
+# -----------------------------
+if df is None:
+    st.warning("No dataset found. Please upload a CSV file.")
 
-    st.success("Dataset uploaded successfully!")
+    uploaded_file = st.file_uploader("📂 Upload Dataset for Reports", type=["csv"])
 
-    # Save for other pages (AI chat can use it)
-    st.session_state["df"] = df
+    if uploaded_file is not None:
+        df = pd.read_csv(uploaded_file)
+        st.session_state["df"] = df
+        st.success("Dataset loaded successfully!")
 
-    st.subheader("📄 Data Preview")
-    st.dataframe(df)
+# -----------------------------
+# STEP 3: If dataset exists, show report
+# -----------------------------
+if df is not None:
 
-    st.subheader("📊 Summary Statistics")
+    st.subheader("📊 Dataset Summary")
     st.write(df.describe())
 
-    # ---------------- REPORTS SECTION ----------------
-    st.subheader("📈 Generated Insights")
+    st.subheader("📌 Column Info")
+    st.write(df.dtypes)
 
-    st.write(f"Total Rows: {df.shape[0]}")
-    st.write(f"Total Columns: {df.shape[1]}")
+    st.subheader("📈 Insights")
 
-    numeric_cols = df.select_dtypes(include=['number']).columns
+    numeric_cols = df.select_dtypes(include="number").columns
 
-    if len(numeric_cols) > 0:
-        st.write("### Column Averages")
-        st.write(df[numeric_cols].mean())
-
-else:
-    st.info("Please upload a dataset to generate reports")
+    for col in numeric_cols:
+        st.write(f"✔ {col}")
+        st.write(f"   - Total: {df[col].sum()}")
+        st.write(f"   - Average: {df[col].mean()}")
+        st.write(f"   - Max: {df[col].max()}")
