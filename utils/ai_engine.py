@@ -1,14 +1,40 @@
+import os
+import pandas as pd
+from groq import Groq
+
+# 🔐 SECURE: API KEY FROM STREAMLIT / ENV (NOT HARD-CODED)
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+# 📊 SAMPLE DATA
+df = pd.DataFrame({
+    "City": ["Delhi", "Mumbai", "Chennai", "Kolkata"],
+    "Sales": [250, 400, 180, 300],
+    "Profit": [50, 120, 30, 80]
+})
+
 def ai_response(query):
-    q = query.lower()
 
-    if "max" in q or "highest" in q:
-        return "The highest value is shown in the dashboard chart."
+    prompt = f"""
+You are a Business Intelligence AI Analyst.
 
-    elif "city" in q:
-        return "Cities like Mumbai and Delhi show highest sales."
+Dataset:
+{df.to_string(index=False)}
 
-    elif "profit" in q:
-        return "Profit is highest in Mumbai due to higher sales."
+Question:
+{query}
 
-    else:
-        return "I can analyze sales, profit, cities, and trends from your data."
+Rules:
+- Use only dataset values
+- Give numeric + insight answer
+- Be concise and professional
+"""
+
+    response = client.chat.completions.create(
+        model="llama-3.3-70b-versatile",
+        messages=[
+            {"role": "system", "content": "You are a BI analyst AI."},
+            {"role": "user", "content": prompt}
+        ]
+    )
+
+    return response.choices[0].message.content

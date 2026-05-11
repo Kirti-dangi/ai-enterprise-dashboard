@@ -1,15 +1,36 @@
 import streamlit as st
-from utils.data_loader import load_data
+import pandas as pd
 
-st.title("📑 Reports")
+st.title("📑 Reports & Data Upload")
 
-df = load_data()
+# ---------------- UPLOAD SECTION ----------------
+uploaded_file = st.file_uploader("Upload Dataset (CSV)", type=["csv"])
 
-st.write("### Dataset")
-st.dataframe(df)
+if uploaded_file is not None:
+    df = pd.read_csv(uploaded_file)
 
-st.download_button(
-    "Download CSV",
-    df.to_csv(index=False),
-    "report.csv"
-)
+    st.success("Dataset uploaded successfully!")
+
+    # Save for other pages (AI chat can use it)
+    st.session_state["df"] = df
+
+    st.subheader("📄 Data Preview")
+    st.dataframe(df)
+
+    st.subheader("📊 Summary Statistics")
+    st.write(df.describe())
+
+    # ---------------- REPORTS SECTION ----------------
+    st.subheader("📈 Generated Insights")
+
+    st.write(f"Total Rows: {df.shape[0]}")
+    st.write(f"Total Columns: {df.shape[1]}")
+
+    numeric_cols = df.select_dtypes(include=['number']).columns
+
+    if len(numeric_cols) > 0:
+        st.write("### Column Averages")
+        st.write(df[numeric_cols].mean())
+
+else:
+    st.info("Please upload a dataset to generate reports")
